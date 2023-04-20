@@ -11,8 +11,8 @@ interface CartItemsAmount {
 }
 
 export default function Register() {
-  const [inputId, setInputId] = useState<number>(0);
-  const [inputAmount, setInputAmount] = useState(0);
+  const [inputId, setInputId] = useState<number>(6);
+  const [inputAmount, setInputAmount] = useState(1);
   const [productData, setProductData] = useState<ProductTypes[]>();
 
   async function handleSubmitSearchProduct(event: FormEvent) {
@@ -23,39 +23,59 @@ export default function Register() {
         amount: inputAmount,
       });
 
-      if (response.data) {
-        if (response.data.amount < inputAmount) {
-          toast.error("Estoque insuficiente!");
-          toast.warn(
-            `So existe ${response.data.amount} quantidades em estoque.`
-          );
-        } else if (response.status === 200) {
-          const newProduct = { ...response.data, amount: inputAmount };
-
-          setProductData((prev) =>
-            prev
-              ? prev.map((prod) => {
-                  if (prod.id === inputId) {
-                    return { ...prod, amount: prod.amount + inputAmount };
-                  }
-
-                  return newProduct;
-                })
-              : [newProduct]
-          );
-
-          toast.success("Produto adicionado com sucesso.");
-
-          setInputId(0);
-          setInputAmount(0);
-        }
+      if (!response.data) {
+        return;
       }
-    } catch (err) {
-      const error = err as AxiosError;
-      if (error.response?.status === 404) {
-        toast.error("Produto não encontrado!");
+
+      if (response.data.amount < inputAmount) {
+        showInsufficientStockError(response.data.amount);
+      } else {
+        updateProductData(response.data);
       }
+
+      resetFormInputs();
+    } catch (error) {
+      handleProductSearchError(error as AxiosError);
     }
+  }
+
+  function showInsufficientStockError(stockAmount: number) {
+    toast.error("Estoque insuficiente!");
+    toast.warn(`So existe ${stockAmount} quantidades em estoque.`);
+  }
+
+  function updateProductData(productData: ProductTypes) {
+    const updatedProduct = { ...productData, amount: inputAmount };
+    const updatedProductData = getUpdatedProductData(updatedProduct);
+
+    setProductData(updatedProductData);
+    toast.success("Produto adicionado com sucesso.");
+  }
+
+  function getUpdatedProductData(updatedProduct: ProductTypes) {
+    const updatedProductData = productData ? [...productData] : [];
+    const existingProductIndex = updatedProductData.findIndex(
+      (product) => product.id === updatedProduct.id
+    );
+
+    if (existingProductIndex !== -1) {
+      updatedProductData[existingProductIndex].amount += inputAmount;
+    } else {
+      updatedProductData.push(updatedProduct);
+    }
+
+    return updatedProductData;
+  }
+
+  function handleProductSearchError(error: AxiosError) {
+    if (error.response?.status === 404) {
+      toast.error("Produto não encontrado!");
+    }
+  }
+
+  function resetFormInputs() {
+    setInputId(0);
+    setInputAmount(0);
   }
 
   async function handleFinishSale() {
@@ -63,7 +83,7 @@ export default function Register() {
 
     for (let index = 0; index < productData!.length; index++) {
       const element = productData![index];
-      id_amount_products[element.id] = element.amount;
+      id_amount_products[String(element.id)] = element.amount;
     }
 
     try {
@@ -73,7 +93,7 @@ export default function Register() {
 
       if (response.status === 200) {
         toast.success("Compra finalizada com sucesso.");
-        setProductData([]);
+        setProductData(undefined);
       }
     } catch (err) {
       const error = err as AxiosError;
@@ -166,14 +186,16 @@ export default function Register() {
               <strong>Quantidade</strong>
               <strong>Valor unitário</strong>
               <strong>Valor total</strong>
-              {productData.map((product) => {
+              {productData.map((product, index) => {
                 return (
-                  <React.Fragment key={product.id}>
+                  <React.Fragment key={index}>
                     <strong>{product.id}</strong>
                     <strong>{product.name}</strong>
                     <strong>{product.amount}</strong>
                     <strong>{product.price}</strong>
-                    <strong>{product.price * product.amount}</strong>
+                    <strong>
+                      {(product.price * product.amount).toFixed(2)}
+                    </strong>
                   </React.Fragment>
                 );
               })}

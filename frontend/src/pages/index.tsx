@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { api } from "@/lib/axios";
 import { ProductTypes } from "@/@types/product";
 import { FormEvent, useState } from "react";
@@ -77,26 +76,7 @@ export default function Home({ products }: HomeProps) {
               className="py-2 px-3 border border-gray-300 focus:border-red-300 focus:outline-none focus:ring focus:ring-red-200 focus:ring-opacity-50 rounded-md shadow-sm disabled:bg-gray-100 mt-1 block w-full"
             />
           </div>
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember_me"
-                type="checkbox"
-                className="border border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50"
-              />
-              <label
-                htmlFor="remember_me"
-                className="ml-2 block text-sm leading-5 text-gray-900"
-              >
-                {" "}
-                Remember me{" "}
-              </label>
-            </div>
-            <a href="#" className="text-sm">
-              {" "}
-              Forgot your password?{" "}
-            </a>
-          </div>
+
           <div className="mt-6">
             <button
               type="submit"
@@ -104,11 +84,6 @@ export default function Home({ products }: HomeProps) {
             >
               Sign In
             </button>
-          </div>
-          <div className="mt-6 text-center">
-            <a href="#" className="underline">
-              Sign up for an account
-            </a>
           </div>
         </form>
       </div>
